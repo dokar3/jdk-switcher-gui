@@ -1,4 +1,4 @@
-use std::{fs::DirEntry, path::PathBuf, process::Command};
+use std::{fs::DirEntry, path::PathBuf, process::Command, os::windows::process::CommandExt};
 
 use crate::model::jdk::Jdk;
 
@@ -64,6 +64,8 @@ pub fn find_jdk_from_exe_path(path: &PathBuf) -> Result<Jdk, String> {
     }
     let output = Command::new(path.as_os_str())
         .arg("-version")
+        .stdout(std::process::Stdio::piped())
+        .creation_flags(0x08000000)
         .output()
         .map_err(|e| e.to_string())?;
     // java --version -> stderr
