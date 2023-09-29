@@ -52,7 +52,7 @@ impl AppSettings {
     fn default_values() -> SettingsValues {
         SettingsValues {
             theme: AppSettings::default_theme(),
-            show_dir_selection_hint: true,
+            skip_dir_selection_hint: false,
         }
     }
 

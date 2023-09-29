@@ -102,9 +102,9 @@ impl AppViewModel {
         Ok(())
     }
 
-    pub async fn update_show_dir_selection_hint(&self, value: bool) -> Result<(), String> {
+    pub async fn update_skip_dir_selection_hint(&self, value: bool) -> Result<(), String> {
         let mut settings = self.ui_state.lock().unwrap().settings.clone();
-        settings.show_dir_selection_hint = value;
+        settings.skip_dir_selection_hint = value;
         AppSettings::update(&settings)?;
         self.update_ui_state(|state| AppUiState {
             settings,

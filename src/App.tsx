@@ -32,7 +32,7 @@ function App() {
   const [uiState, setUiState] = useState<AppUiState>(() => {
     let initial: AppUiState = {
       jdks: [],
-      settings: { theme: AppTheme.Unknown, show_dir_selection_hint: true },
+      settings: { theme: AppTheme.Unknown, skip_dir_selection_hint: false },
     };
     return initial;
   });
@@ -46,8 +46,7 @@ function App() {
   const [isShowJdkDirSelectorDialog, setShowJdkDirSelectorDialog] =
     useState(false);
 
-  const [doNotShowJdkDirSelHintAgain, setDoNotShowJdkDirSelHintAgain] =
-    useState(false);
+  const [skipDirSelectionHint, setSkipDirSelectionHint] = useState(false);
 
   const [currentJdk, jdks] = useMemo(() => {
     const curr = uiState.jdks.find((item) => item.is_current);
@@ -109,8 +108,8 @@ function App() {
   };
 
   const selectJdkDir = async () => {
-    await invoke("update_show_dir_selection_hint", {
-      value: !doNotShowJdkDirSelHintAgain,
+    await invoke("update_skip_dir_selection_hint", {
+      value: skipDirSelectionHint,
     });
     const dir = await open({
       directory: true,
@@ -215,7 +214,7 @@ function App() {
             <div
               className="w-8 h-8 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
               onClick={() => {
-                if (uiState.settings.show_dir_selection_hint !== false) {
+                if (uiState.settings.skip_dir_selection_hint !== true) {
                   setShowJdkDirSelectorDialog(true);
                 } else {
                   selectJdkDir();
@@ -287,13 +286,13 @@ function App() {
 
       <JdkDirSelectorDialog
         open={isShowJdkDirSelectorDialog}
-        doNotShowAgain={doNotShowJdkDirSelHintAgain}
+        doNotShowAgain={skipDirSelectionHint}
         onClose={() => setShowJdkDirSelectorDialog(false)}
         onSelectClick={() => {
           selectJdkDir();
           setShowJdkDirSelectorDialog(false);
         }}
-        onUpdateDoNotShowAgain={setDoNotShowJdkDirSelHintAgain}
+        onUpdateDoNotShowAgain={setSkipDirSelectionHint}
       />
     </div>
   );

@@ -9,7 +9,7 @@ export enum AppTheme {
 
 export type AppSettings = {
   theme: AppTheme;
-  show_dir_selection_hint: boolean;
+  skip_dir_selection_hint: boolean;
 };
 
 export type AppUiState = {

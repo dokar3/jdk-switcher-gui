@@ -34,7 +34,7 @@ fn main() {
             remove_jdk_by_path,
             switch_to_jdk,
             update_app_theme,
-            update_show_dir_selection_hint,
+            update_skip_dir_selection_hint,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -125,9 +125,9 @@ async fn update_app_theme(
 }
 
 #[tauri::command]
-async fn update_show_dir_selection_hint(
+async fn update_skip_dir_selection_hint(
     view_model: tauri::State<'_, AppViewModel>,
     value: bool,
 ) -> Result<(), String> {
-    view_model.update_show_dir_selection_hint(value).await
+    view_model.update_skip_dir_selection_hint(value).await
 }
