@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "A slim GUI App to switch between multiple JDKs."
 authors = ["dokar"]
 license = "Apache-2.0"
-repository = "https://github.com/dokar3/jdk-switcher"
+repository = "https://github.com/dokar3/jdk-switcher-gui"
 edition = "2021"
 
 [[bin]]
