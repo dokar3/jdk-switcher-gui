@@ -16,6 +16,7 @@ Example:
 Args:
   -a, --add     Add a path to the variable.
   -r, --remove  Remove a path from the variable.
+  -i, --id      Specify the execution id, which will be written to the result file.
   -h, --help    Print help message.
 "#;
 
@@ -23,6 +24,7 @@ Args:
 enum CliCommand {
     Help,
     None,
+    ExecId(String),
     AddPath(String),
     RemovePath(String),
 }
@@ -49,11 +51,25 @@ fn main() {
         .open(result_file_path)
         .unwrap();
 
-    for command in commands.unwrap() {
+    let commands = commands.unwrap();
+
+    if let Some(exec_id) = commands.iter().find_map(|item| match item {
+        CliCommand::ExecId(id) => Some(id),
+        _ => None,
+    }) {
+        // Write exec id at the first line
+        result_file
+            .write(format!("ID: {}\n", exec_id).as_bytes())
+            .unwrap();
+        result_file.flush().unwrap();
+    }
+
+    for command in commands {
         let ret = match command {
             CliCommand::Help | CliCommand::None => Ok(println!("{}", HELP_MESSAGE)),
             CliCommand::AddPath(path) => add_to_env_path(&path),
             CliCommand::RemovePath(path) => remove_from_env_path(&path),
+            CliCommand::ExecId(_) => Ok(()),
         };
         if let Err(e) = ret {
             eprintln!("{}", e);
@@ -91,6 +107,12 @@ fn parse_commands() -> Result<Vec<CliCommand>, String> {
             "-r" | "--remove" => {
                 let path = args.next().ok_or(format!("Missing path after {}", cmd))?;
                 commands.push(CliCommand::RemovePath(path))
+            }
+            "-i" | "--id" => {
+                let id = args
+                    .next()
+                    .ok_or(format!("Missing exec id after {}", cmd))?;
+                commands.push(CliCommand::ExecId(id))
             }
             _ => return Err(format!("Unknown command {}.", cmd)),
         }

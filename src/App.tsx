@@ -25,7 +25,7 @@ enum ToastDuration {
   Short = 1500,
   Normal = 2500,
   Long = 5000,
-  Infinity = window.Infinity,
+  Infinity = 999_999_999,
 }
 
 function App() {
@@ -99,8 +99,8 @@ function App() {
       })
       .catch((e) => {
         const message = `Cannot switch to JDK '${jdk.name} ${jdk.version}', error: ${e}`;
-        toast.error(message, { duration: ToastDuration.Infinity });
         console.error(message);
+        toast.error(message, { duration: ToastDuration.Infinity });
       })
       .finally(() => {
         setOperatingMessage(null);

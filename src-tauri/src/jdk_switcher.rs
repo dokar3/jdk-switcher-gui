@@ -1,4 +1,7 @@
-use std::{path::PathBuf, time::Duration};
+use std::{
+    path::PathBuf,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use crate::{
     model::jdk::Jdk,
@@ -43,64 +46,81 @@ fn find_curr_java_bin_dir() -> Option<String> {
 }
 
 fn exec_env_path_updater(args: Vec<&str>) -> Result<(), String> {
-    let result_file_path = std::env::current_exe()
-        .map_err(|_| "Update result is unavailable.".to_string())?
-        .parent()
-        .unwrap()
-        .join("env-path-updater.log");
-    if result_file_path.exists() {
-        // Delete result file
-        std::fs::remove_file(result_file_path.clone())
-            .map_err(|e| format!("Cannot prepare update result: {}", e.to_string()))?;
-    }
+    let exe_path = std::env::current_exe().unwrap();
+    let exe_dir = exe_path.parent().unwrap();
 
-    let program = std::env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
+    let program = exe_dir
         .join("env-path-updater")
         .to_str()
         .unwrap()
         .to_string();
 
+    // Unique id used to verify execute result.
+    let exec_id = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
+        .to_string();
+
     // Execute command as admin
     let status = runas::Command::new(program)
         .args(&args)
+        .args(&["--id", &exec_id])
         .status()
         .map_err(|e| e.to_string())?;
     let _ = status.success();
 
-    // Pause for a while...
+    let result_file_path = exe_dir.join("env-path-updater.log");
     let mut paused_millis = 0;
-    while !result_file_path.exists() && paused_millis < 1000 {
-        std::thread::sleep(Duration::from_millis(50));
-        paused_millis += 50;
+    let mut prev_err = "Internal error.".to_string();
+
+    while paused_millis < 2000 {
+        // Verify the result file
+        if let Err(e) = verify_exec_result(&result_file_path, &exec_id) {
+            std::thread::sleep(Duration::from_millis(50));
+            prev_err = e;
+            paused_millis += 50;
+        } else {
+            return Ok(());
+        }
     }
 
+    Err(prev_err)
+}
+
+fn verify_exec_result(result_file_path: &PathBuf, exec_id: &str) -> Result<(), String> {
     if !result_file_path.exists() {
         // Result file not found, failed
         return Err("Update result not found.".to_string());
     }
     let lines: Vec<String> = std::fs::read_to_string(result_file_path)
-        .map_err(|e| format!("Cannot read update result: {}", e.to_string()))?
+        .map_err(|e| format!("Cannot read update result: {}.", e.to_string()))?
         .lines()
         .map(|s| s.to_owned())
         .collect();
     if lines.is_empty() {
         // Empty result file, failed
-        return Err("Empty update result".to_string());
+        return Err("Empty update result.".to_string());
+    }
+    if lines.len() < 2 {
+        // Unsupported result, failed
+        return Err("Unsupported update result.".to_string());
+    }
+    if lines[0] != format!("ID: {}", exec_id) {
+        // ID not matched, failed
+        return Err("Target update result not found.".to_string());
     }
     // Verify update result
-    match lines[0].as_str() {
+    match lines[1].as_str() {
         "ERR" => {
-            let err = if lines.len() > 1 {
-                lines[1].to_owned()
+            let err = if lines.len() > 2 {
+                lines[2].to_owned()
             } else {
                 "Unknown error.".to_string()
             };
             Err(err)
         }
         "OK" => Ok(()),
-        _ => Err(format!("Unknown update result '{}'", lines[0])),
+        _ => Err(format!("Unknown update result '{}'", lines[1])),
     }
 }
