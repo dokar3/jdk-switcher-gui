@@ -8,7 +8,7 @@
   },
   "package": {
     "productName": "JDKSwitcher",
-    "version": "1.0.0-alpha"
+    "version": "1.0.0"
   },
   "tauri": {
     "bundle": {

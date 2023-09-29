@@ -1,6 +1,6 @@
 [package]
 name = "jdk-switcher"
-version = "1.0.0-alpha"
+version = "1.0.0"
 description = "A slim GUI App to switch between multiple JDKs."
 authors = ["dokar"]
 license = "Apache-2.0"
