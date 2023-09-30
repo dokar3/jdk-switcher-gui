@@ -129,6 +129,10 @@ function App() {
   };
 
   useEffect(() => {
+    if (location.hostname === "tauri.localhost") {
+      window.oncontextmenu = (e) => e.preventDefault();
+    }
+
     let cancelLoadingTid = -1;
 
     const setup = async () => {
