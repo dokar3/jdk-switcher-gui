@@ -35,7 +35,7 @@ jobs:
         run: cargo test --verbose
 
       - name: Bundle
-        run: yarn tauri build
+        run: yarn && yarn tauri build
 
       - name: Release
         uses: softprops/action-gh-release@v1
