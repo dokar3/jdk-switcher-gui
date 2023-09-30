@@ -1,21 +1,20 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use std::path::PathBuf;
-
-use indoc::formatdoc;
-use model::jdk::Jdk;
-use tauri::Manager;
-use tauri_plugin_dialog::DialogExt;
 
 mod app_settings;
+mod app_view_model;
 mod jdk_finder;
 mod jdk_switcher;
 mod model;
 mod repo;
 mod util;
-mod app_view_model;
 
 use app_view_model::AppViewModel;
+use indoc::formatdoc;
+use model::jdk::Jdk;
+use std::path::PathBuf;
+use tauri::Manager;
+use tauri_plugin_dialog::DialogExt;
 
 fn main() {
     tauri::Builder::default()
@@ -45,12 +44,13 @@ async fn open_about_dialog(window: tauri::Window) {
     let package = util::cargo_manifest::read_cargo_package();
     let message = formatdoc! {
         r#"
-        JDK Switcher
+        {}
         ----------
         {}
         ----------
         Version: {}
         Repository: {}"#,
+        package.name,
         package.description,
         package.version,
         package.repository,
