@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Yarn zero-installs
+.yarn/unplugged
+.yarn/build-state.yml
