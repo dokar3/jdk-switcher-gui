@@ -12,14 +12,15 @@ import {
 } from "@heroicons/react/24/outline";
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/plugin-dialog";
-import { getCurrent } from "@tauri-apps/plugin-window";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import "./App.css";
+import JdkDirSelectorDialog from "./JdkDirSelectorDialog";
 import CircularLoader from "./component/CircularLoader";
+import useTauriEvents from "./hook/useTauriEvents";
 import { AppTheme, AppUiState } from "./model/AppUiState";
 import { Jdk } from "./model/Jdk";
-import JdkDirSelectorDialog from "./JdkDirSelectorDialog";
+import applyAppTheme from "./hook/applyAppTheme";
 
 enum ToastDuration {
   Short = 1500,
@@ -29,12 +30,9 @@ enum ToastDuration {
 }
 
 function App() {
-  const [uiState, setUiState] = useState<AppUiState>(() => {
-    let initial: AppUiState = {
-      jdks: [],
-      settings: { theme: AppTheme.Unknown, skip_dir_selection_hint: false },
-    };
-    return initial;
+  const uiState = useTauriEvents<AppUiState>("ui-state-stream", {
+    jdks: [],
+    settings: { theme: AppTheme.Unknown, skip_dir_selection_hint: false },
   });
 
   const theme = uiState.settings.theme;
@@ -131,13 +129,6 @@ function App() {
   };
 
   useEffect(() => {
-    const listenUiState = async () => {
-      return await getCurrent().listen<AppUiState>("ui-state-stream", (event) =>
-        setUiState(event.payload)
-      );
-    };
-    const unlistenUiStateFn = listenUiState();
-
     let cancelLoadingTid = -1;
 
     const setup = async () => {
@@ -152,39 +143,11 @@ function App() {
     setup();
 
     return () => {
-      const unlisten = async () => {
-        await unlistenUiStateFn;
-      };
-      unlisten();
       clearTimeout(cancelLoadingTid);
     };
   }, []);
 
-  useEffect(() => {
-    const dark = () => window.document.body.classList.add("dark");
-    const light = () => window.document.body.classList.remove("dark");
-    switch (theme) {
-      case AppTheme.Dark: {
-        dark();
-        break;
-      }
-      case AppTheme.Light: {
-        light();
-        break;
-      }
-      case AppTheme.Default: {
-        if (
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-          dark();
-        } else {
-          light();
-        }
-        break;
-      }
-    }
-  }, [theme]);
+  applyAppTheme(theme);
 
   return (
     <div className="w-full min-h-screen text-gray-900 dark:text-white relative bg-white dark:bg-gray-900 select-none">
