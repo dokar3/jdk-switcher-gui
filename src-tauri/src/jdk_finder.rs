@@ -41,7 +41,7 @@ pub fn find_jdks_from_dir(path: &PathBuf) -> Result<Vec<Jdk>, String> {
             return Ok(jdks);
         }
 
-        // Try every sub dirs
+        // Try every sub dir
         for file in files {
             let file_path = file.path();
             if file_path.is_dir() {
