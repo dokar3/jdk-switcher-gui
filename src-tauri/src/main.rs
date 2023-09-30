@@ -13,9 +13,9 @@ mod jdk_switcher;
 mod model;
 mod repo;
 mod util;
-mod view_model;
+mod app_view_model;
 
-use view_model::AppViewModel;
+use app_view_model::AppViewModel;
 
 fn main() {
     tauri::Builder::default()
@@ -81,7 +81,7 @@ async fn listen_ui_state_stream(
     window: tauri::Window,
     view_model: tauri::State<'_, AppViewModel>,
 ) -> Result<(), ()> {
-    let receiver = view_model.ui_state_stream().await;
+    let receiver = view_model.ui_state_stream();
     while !receiver.is_closed() {
         let ui_state = receiver.recv().await.unwrap();
         window.emit("ui-state-stream", ui_state).unwrap();
@@ -91,7 +91,7 @@ async fn listen_ui_state_stream(
 
 #[tauri::command]
 async fn load_jdks(view_model: tauri::State<'_, AppViewModel>) -> Result<(), ()> {
-    view_model.load_jdks().await;
+    view_model.load_jdks();
     Ok(())
 }
 
@@ -100,12 +100,12 @@ async fn add_jdks_from_dir(
     view_model: tauri::State<'_, AppViewModel>,
     dir: String,
 ) -> Result<usize, String> {
-    view_model.try_add_jdks_from_dir(&dir).await
+    view_model.try_add_jdks_from_dir(&dir)
 }
 
 #[tauri::command]
 async fn switch_to_jdk(view_model: tauri::State<'_, AppViewModel>, jdk: Jdk) -> Result<(), String> {
-    view_model.switch_to_jdk(&jdk).await
+    view_model.switch_to_jdk(&jdk)
 }
 
 #[tauri::command]
@@ -113,7 +113,7 @@ async fn remove_jdk_by_path(
     view_model: tauri::State<'_, AppViewModel>,
     path: String,
 ) -> Result<(), String> {
-    view_model.remove_jdk_by_path(&path).await
+    view_model.remove_jdk_by_path(&path)
 }
 
 #[tauri::command]
@@ -121,7 +121,7 @@ async fn update_app_theme(
     view_model: tauri::State<'_, AppViewModel>,
     theme: String,
 ) -> Result<(), String> {
-    view_model.update_app_theme(&theme).await
+    view_model.update_app_theme(&theme)
 }
 
 #[tauri::command]
@@ -129,5 +129,5 @@ async fn update_skip_dir_selection_hint(
     view_model: tauri::State<'_, AppViewModel>,
     value: bool,
 ) -> Result<(), String> {
-    view_model.update_skip_dir_selection_hint(value).await
+    view_model.update_skip_dir_selection_hint(value)
 }
