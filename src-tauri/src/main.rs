@@ -90,7 +90,9 @@ async fn listen_ui_state_stream(
 }
 
 #[tauri::command]
-async fn load_jdks(view_model: tauri::State<'_, AppViewModel>) -> Result<(), ()> {
+async fn load_jdks(
+    view_model: tauri::State<'_, AppViewModel>,
+) -> Result<(), ()> {
     view_model.load_jdks();
     Ok(())
 }
@@ -104,7 +106,10 @@ async fn add_jdks_from_dir(
 }
 
 #[tauri::command]
-async fn switch_to_jdk(view_model: tauri::State<'_, AppViewModel>, jdk: Jdk) -> Result<(), String> {
+async fn switch_to_jdk(
+    view_model: tauri::State<'_, AppViewModel>,
+    jdk: Jdk,
+) -> Result<(), String> {
     view_model.switch_to_jdk(&jdk)
 }
 

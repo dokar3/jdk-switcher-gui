@@ -1,5 +1,5 @@
-pub mod env;
 pub mod cargo_manifest;
+pub mod env;
 
 mod app_paths;
 mod command_exe_path_finder;

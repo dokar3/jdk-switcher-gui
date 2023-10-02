@@ -88,7 +88,10 @@ fn exec_env_path_updater(args: Vec<&str>) -> Result<(), String> {
     Err(prev_err)
 }
 
-fn verify_exec_result(result_file_path: &PathBuf, exec_id: &str) -> Result<(), String> {
+fn verify_exec_result(
+    result_file_path: &PathBuf,
+    exec_id: &str,
+) -> Result<(), String> {
     if !result_file_path.exists() {
         // Result file not found, failed
         return Err("Update result not found.".to_string());

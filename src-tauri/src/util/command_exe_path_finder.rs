@@ -1,8 +1,4 @@
-use std::{
-    os::windows::process::CommandExt,
-    path::PathBuf,
-    process::Command,
-};
+use std::{os::windows::process::CommandExt, path::PathBuf, process::Command};
 
 pub fn find_command_exe_path(command: &str) -> Option<PathBuf> {
     let output = Command::new("where")

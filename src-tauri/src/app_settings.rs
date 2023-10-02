@@ -34,19 +34,23 @@ impl AppSettings {
                     })?;
                 }
             }
-            File::create(json_path)
-                .map_err(|e| format!("Cannot create settings.json: {}", e.to_string()))?
+            File::create(json_path).map_err(|e| {
+                format!("Cannot create settings.json: {}", e.to_string())
+            })?
         } else {
             OpenOptions::new()
                 .read(true)
                 .write(true)
                 .truncate(true)
                 .open(json_path)
-                .map_err(|e| format!("Cannot open settings.json: {}", e.to_string()))?
+                .map_err(|e| {
+                    format!("Cannot open settings.json: {}", e.to_string())
+                })?
         };
 
-        serde_json::to_writer(file, values)
-            .map_err(|e| format!("Cannot write to settings.json: {}", e.to_string()))
+        serde_json::to_writer(file, values).map_err(|e| {
+            format!("Cannot write to settings.json: {}", e.to_string())
+        })
     }
 
     fn default_values() -> SettingsValues {

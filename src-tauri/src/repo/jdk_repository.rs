@@ -16,7 +16,8 @@ impl JdkRepository {
     /// Get all saved jdk.
     pub fn get_all(&self) -> Result<Vec<Jdk>, String> {
         let file = self.json_file(false, false)?;
-        serde_json::from_reader::<File, Vec<Jdk>>(file).map_err(|e| e.to_string())
+        serde_json::from_reader::<File, Vec<Jdk>>(file)
+            .map_err(|e| e.to_string())
     }
 
     /// Add a jdk.
@@ -92,7 +93,11 @@ impl JdkRepository {
         serde_json::to_writer(&mut file, jdks).map_err(|e| e.to_string())
     }
 
-    fn json_file(&self, create_if_not_exists: bool, clear_content: bool) -> Result<File, String> {
+    fn json_file(
+        &self,
+        create_if_not_exists: bool,
+        clear_content: bool,
+    ) -> Result<File, String> {
         let file_buf = paths::jdks_json_path();
         if !file_buf.exists() {
             if create_if_not_exists {

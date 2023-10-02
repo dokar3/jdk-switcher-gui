@@ -1,4 +1,7 @@
-use std::{fs::DirEntry, path::PathBuf, process::Command, os::windows::process::CommandExt};
+use std::{
+    fs::DirEntry, os::windows::process::CommandExt, path::PathBuf,
+    process::Command,
+};
 
 use crate::model::jdk::Jdk;
 
@@ -17,9 +20,9 @@ pub fn find_jdks_from_dir(path: &PathBuf) -> Result<Vec<Jdk>, String> {
             .collect();
 
         // Find the java exe
-        let java = files
-            .iter()
-            .find(|item| item.path().is_file() && item.file_name() == get_java_executable());
+        let java = files.iter().find(|item| {
+            item.path().is_file() && item.file_name() == get_java_executable()
+        });
         if java.is_some() {
             let jdk = find_jdk_from_exe_path(&java.unwrap().path());
             if jdk.is_ok() {

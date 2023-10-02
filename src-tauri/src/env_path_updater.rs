@@ -66,7 +66,9 @@ fn main() {
 
     for command in commands {
         let ret = match command {
-            CliCommand::Help | CliCommand::None => Ok(println!("{}", HELP_MESSAGE)),
+            CliCommand::Help | CliCommand::None => {
+                Ok(println!("{}", HELP_MESSAGE))
+            }
             CliCommand::AddPath(path) => add_to_env_path(&path),
             CliCommand::RemovePath(path) => remove_from_env_path(&path),
             CliCommand::ExecId(_) => Ok(()),
@@ -101,11 +103,13 @@ fn parse_commands() -> Result<Vec<CliCommand>, String> {
         match cmd.as_str() {
             "-h" | "--help" => return Ok(vec![CliCommand::Help]),
             "-a" | "--add" => {
-                let path = args.next().ok_or(format!("Missing path after {}", cmd))?;
+                let path =
+                    args.next().ok_or(format!("Missing path after {}", cmd))?;
                 commands.push(CliCommand::AddPath(path))
             }
             "-r" | "--remove" => {
-                let path = args.next().ok_or(format!("Missing path after {}", cmd))?;
+                let path =
+                    args.next().ok_or(format!("Missing path after {}", cmd))?;
                 commands.push(CliCommand::RemovePath(path))
             }
             "-i" | "--id" => {
@@ -148,11 +152,14 @@ fn update_env_path<F>(closure: F) -> Result<(), String>
 where
     F: FnOnce(String) -> String,
 {
-    let key_path = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
+    let key_path =
+        "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
     // Open the registry key
     let reg_key = RegKey::predef(HKEY_LOCAL_MACHINE)
         .open_subkey_with_flags(key_path, KEY_READ)
-        .map_err(|e| format!("Failed to get reg key for read: {}", e.to_string()))?;
+        .map_err(|e| {
+            format!("Failed to get reg key for read: {}", e.to_string())
+        })?;
 
     // Read the current value of the PATH variable
     let current_path: String = reg_key
@@ -167,7 +174,9 @@ where
 
     let reg_key = RegKey::predef(HKEY_LOCAL_MACHINE)
         .open_subkey_with_flags(key_path, KEY_SET_VALUE)
-        .map_err(|e| format!("Failed to get reg key for update: {}", e.to_string()))?;
+        .map_err(|e| {
+            format!("Failed to get reg key for update: {}", e.to_string())
+        })?;
     // Update the PATH variable in the registry
     reg_key
         .set_value("Path", &updated)
