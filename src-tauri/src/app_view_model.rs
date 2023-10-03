@@ -8,11 +8,12 @@ use tokio::runtime::Runtime;
 
 use crate::{
     app_settings::AppSettings,
+    errors::AppError,
     jdk_finder::{find_jdk_from_exe_path, find_jdks_from_dir},
     jdk_switcher,
     model::{jdk::Jdk, settings::SettingsValues},
     repo::jdk_repository::JdkRepository,
-    util::{self, paths::find_command_exe_path}, errors::AppError,
+    util::{self, paths::find_command_exe_path},
 };
 
 #[derive(Clone, serde::Serialize)]
@@ -48,10 +49,8 @@ impl AppViewModel {
     /// Load all saved jdks.
     pub fn load_jdks(&self) {
         let jdks = self.jdk_repo.get_all().unwrap_or_default();
-        let jdks = self.process_saved_jdks(jdks);
-        self.update_ui_state(|state| AppUiState {
-            settings: state.settings.clone(),
-            jdks,
+        self.update_ui_state(|state| {
+            state.jdks = self.process_saved_jdks(jdks);
         });
     }
 
@@ -93,13 +92,10 @@ impl AppViewModel {
     }
 
     pub fn update_app_theme(&self, theme: &str) -> Result<(), AppError> {
-        let mut settings = self.ui_state.lock().unwrap().settings.clone();
-        settings.theme = theme.to_string();
-        AppSettings::update(&settings)?;
-        self.update_ui_state(|state| AppUiState {
-            settings,
-            jdks: state.jdks.clone(),
-        });
+        self.update_ui_state(|state| {
+            state.settings.theme = theme.to_string();
+            AppSettings::update(&state.settings)
+        })?;
         Ok(())
     }
 
@@ -107,13 +103,10 @@ impl AppViewModel {
         &self,
         value: bool,
     ) -> Result<(), AppError> {
-        let mut settings = self.ui_state.lock().unwrap().settings.clone();
-        settings.skip_dir_selection_hint = value;
-        AppSettings::update(&settings)?;
-        self.update_ui_state(|state| AppUiState {
-            settings,
-            jdks: state.jdks.clone(),
-        });
+        self.update_ui_state(|state| {
+            state.settings.skip_dir_selection_hint = value;
+            AppSettings::update(&state.settings)
+        })?;
         Ok(())
     }
 
@@ -124,14 +117,17 @@ impl AppViewModel {
     }
 
     // Update the current ui state.
-    fn update_ui_state<F>(&self, closure: F)
+    fn update_ui_state<F, R>(&self, closure: F) -> R
     where
-        F: FnOnce(&AppUiState) -> AppUiState,
+        F: FnOnce(&mut AppUiState) -> R,
     {
-        let curr = self.ui_state.lock().unwrap().clone();
-        let updated_state = closure(&curr);
-        *self.ui_state.lock().unwrap() = updated_state.clone();
+        let result = {
+            let mut curr = self.ui_state.lock().unwrap();
+            closure(&mut curr)
+            // Release the lock earlier, otherwise, we are dead-locked!
+        };
         self.notify_ui_state();
+        result
     }
 
     // Send the latest ui state to the channel.
@@ -171,7 +167,7 @@ impl AppViewModel {
                 return AppViewModel::validate_jdks(jdks);
             };
             current.is_current = true;
-            let mut new_list = jdks.clone();
+            let mut new_list = jdks;
             // Add current jdk to the list
             new_list.push(current);
             return AppViewModel::validate_jdks(new_list);
