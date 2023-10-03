@@ -130,7 +130,7 @@ fn add_to_env_path(value: &str) -> Result<(), String> {
         if path.contains(value) {
             return path;
         }
-        let mut new_path = path.clone();
+        let mut new_path = path;
         new_path.push_str(value);
         new_path.push(';');
         new_path

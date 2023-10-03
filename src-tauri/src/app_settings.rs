@@ -28,7 +28,7 @@ impl AppSettings {
         let file = if !json_path.exists() {
             if let Some(parent) = json_path.parent() {
                 if !parent.exists() {
-                    std::fs::create_dir_all(parent.clone()).map_err(|e| {
+                    std::fs::create_dir_all(parent).map_err(|e| {
                         AppError::new(format!(
                             "Cannot create dir: {}, error: {}",
                             parent.to_str().unwrap(),
