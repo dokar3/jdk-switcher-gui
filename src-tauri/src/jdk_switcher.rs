@@ -4,14 +4,17 @@ use std::{
 };
 
 use crate::{
+    errors::AppError,
     model::jdk::Jdk,
     util::{self, paths::find_command_exe_path},
 };
 
-pub fn switch_to_jdk(jdk: &Jdk) -> Result<(), String> {
+pub fn switch_to_jdk(jdk: &Jdk) -> Result<(), AppError> {
     let path = PathBuf::from(&jdk.path);
     if !path.exists() {
-        return Err("Target jdk path does not exist.".to_string());
+        return Err(AppError::new(
+            "Target jdk path does not exist.".to_string(),
+        ));
     }
 
     let curr_java_bin_dir = find_curr_java_bin_dir();
@@ -45,7 +48,7 @@ fn find_curr_java_bin_dir() -> Option<String> {
     }
 }
 
-fn exec_env_path_updater(args: Vec<&str>) -> Result<(), String> {
+fn exec_env_path_updater(args: Vec<&str>) -> Result<(), AppError> {
     let exe_path = std::env::current_exe().unwrap();
     let exe_dir = exe_path.parent().unwrap();
 
@@ -66,13 +69,12 @@ fn exec_env_path_updater(args: Vec<&str>) -> Result<(), String> {
     let status = runas::Command::new(program)
         .args(&args)
         .args(&["--id", &exec_id])
-        .status()
-        .map_err(|e| e.to_string())?;
+        .status()?;
     let _ = status.success();
 
     let result_file_path = exe_dir.join("env-path-updater.log");
     let mut paused_millis = 0;
-    let mut prev_err = "Internal error.".to_string();
+    let mut prev_err = AppError::new("Internal error.");
 
     while paused_millis < 2000 {
         // Verify the result file
@@ -91,27 +93,32 @@ fn exec_env_path_updater(args: Vec<&str>) -> Result<(), String> {
 fn verify_exec_result(
     result_file_path: &PathBuf,
     exec_id: &str,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     if !result_file_path.exists() {
         // Result file not found, failed
-        return Err("Update result not found.".to_string());
+        return Err(AppError::new("Update result not found."));
     }
     let lines: Vec<String> = std::fs::read_to_string(result_file_path)
-        .map_err(|e| format!("Cannot read update result: {}.", e.to_string()))?
+        .map_err(|e| {
+            AppError::new(format!(
+                "Cannot read update result: {}.",
+                e.to_string()
+            ))
+        })?
         .lines()
         .map(|s| s.to_owned())
         .collect();
     if lines.is_empty() {
         // Empty result file, failed
-        return Err("Empty update result.".to_string());
+        return Err(AppError::new("Empty update result."));
     }
     if lines.len() < 2 {
         // Unsupported result, failed
-        return Err("Unsupported update result.".to_string());
+        return Err(AppError::new("Unsupported update result."));
     }
     if lines[0] != format!("ID: {}", exec_id) {
         // ID not matched, failed
-        return Err("Target update result not found.".to_string());
+        return Err(AppError::new("Target update result not found."));
     }
     // Verify update result
     match lines[1].as_str() {
@@ -121,9 +128,12 @@ fn verify_exec_result(
             } else {
                 "Unknown error.".to_string()
             };
-            Err(err)
+            Err(AppError::new(err))
         }
         "OK" => Ok(()),
-        _ => Err(format!("Unknown update result '{}'", lines[1])),
+        _ => Err(AppError::new(format!(
+            "Unknown update result '{}'",
+            lines[1]
+        ))),
     }
 }

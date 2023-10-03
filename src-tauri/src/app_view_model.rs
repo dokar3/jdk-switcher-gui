@@ -12,7 +12,7 @@ use crate::{
     jdk_switcher,
     model::{jdk::Jdk, settings::SettingsValues},
     repo::jdk_repository::JdkRepository,
-    util::{self, paths::find_command_exe_path},
+    util::{self, paths::find_command_exe_path}, errors::AppError,
 };
 
 #[derive(Clone, serde::Serialize)]
@@ -55,7 +55,7 @@ impl AppViewModel {
         });
     }
 
-    pub fn remove_jdk_by_path(&self, path: &str) -> Result<(), String> {
+    pub fn remove_jdk_by_path(&self, path: &str) -> Result<(), AppError> {
         let ret = self.jdk_repo.remove_by_path(path);
         if ret.is_ok() {
             self.load_jdks();
@@ -64,10 +64,10 @@ impl AppViewModel {
     }
 
     /// Scan jdk recursively from a path.
-    pub fn try_add_jdks_from_dir(&self, path: &str) -> Result<usize, String> {
+    pub fn try_add_jdks_from_dir(&self, path: &str) -> Result<usize, AppError> {
         let path = PathBuf::from(path);
         if !path.exists() {
-            return Err("Dir does not exist.".to_string());
+            return Err(AppError::new("Dir does not exist."));
         }
         let jdks = find_jdks_from_dir(&path)?;
         let ret = self.jdk_repo.add_all(&jdks).map(|_| jdks.len());
@@ -84,7 +84,7 @@ impl AppViewModel {
         self.load_jdks();
     }
 
-    pub fn switch_to_jdk(&self, jdk: &Jdk) -> Result<(), String> {
+    pub fn switch_to_jdk(&self, jdk: &Jdk) -> Result<(), AppError> {
         let ret = jdk_switcher::switch_to_jdk(jdk);
         if ret.is_ok() {
             self.load_jdks()
@@ -92,7 +92,7 @@ impl AppViewModel {
         ret
     }
 
-    pub fn update_app_theme(&self, theme: &str) -> Result<(), String> {
+    pub fn update_app_theme(&self, theme: &str) -> Result<(), AppError> {
         let mut settings = self.ui_state.lock().unwrap().settings.clone();
         settings.theme = theme.to_string();
         AppSettings::update(&settings)?;
@@ -106,7 +106,7 @@ impl AppViewModel {
     pub fn update_skip_dir_selection_hint(
         &self,
         value: bool,
-    ) -> Result<(), String> {
+    ) -> Result<(), AppError> {
         let mut settings = self.ui_state.lock().unwrap().settings.clone();
         settings.skip_dir_selection_hint = value;
         AppSettings::update(&settings)?;

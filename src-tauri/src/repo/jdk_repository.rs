@@ -3,7 +3,7 @@ use std::{
     fs::{self, File, OpenOptions},
 };
 
-use crate::{model::jdk::Jdk, util::paths};
+use crate::{errors::AppError, model::jdk::Jdk, util::paths};
 
 pub struct JdkRepository {}
 
@@ -14,14 +14,13 @@ impl JdkRepository {
     }
 
     /// Get all saved jdk.
-    pub fn get_all(&self) -> Result<Vec<Jdk>, String> {
+    pub fn get_all(&self) -> Result<Vec<Jdk>, AppError> {
         let file = self.json_file(false, false)?;
-        serde_json::from_reader::<File, Vec<Jdk>>(file)
-            .map_err(|e| e.to_string())
+        Ok(serde_json::from_reader::<File, Vec<Jdk>>(file)?)
     }
 
     /// Add a jdk.
-    pub fn add(&self, jdk: &Jdk) -> Result<(), String> {
+    pub fn add(&self, jdk: &Jdk) -> Result<(), AppError> {
         let mut all = self.get_all().unwrap_or_default();
         if all.iter().any(|item| item.path == jdk.path) {
             return self.update(jdk);
@@ -31,7 +30,7 @@ impl JdkRepository {
     }
 
     /// Add a list of jdk.
-    pub fn add_all(&self, jdks: &Vec<Jdk>) -> Result<(), String> {
+    pub fn add_all(&self, jdks: &Vec<Jdk>) -> Result<(), AppError> {
         let mut all = self.get_all().unwrap_or_default();
         let mut map = HashMap::<String, usize>::new();
         for (index, jdk) in all.iter().enumerate() {
@@ -50,30 +49,30 @@ impl JdkRepository {
     }
 
     /// Update a jdk.
-    pub fn update(&self, jdk: &Jdk) -> Result<(), String> {
+    pub fn update(&self, jdk: &Jdk) -> Result<(), AppError> {
         let mut all = self.get_all().unwrap_or_default();
         let Some(index) = all.iter().position(|item| item.path == jdk.path) else {
-            return  Err(String::from(format!("Jdk '{}' does not exist.", jdk.path)));
+            return  Err(AppError::new(format!("Jdk '{}' does not exist.", jdk.path)));
         };
         all[index] = jdk.clone();
         self.save_jdks(&all)
     }
 
     /// Remove a jdk by its path.
-    pub fn remove_by_path(&self, path: &str) -> Result<(), String> {
+    pub fn remove_by_path(&self, path: &str) -> Result<(), AppError> {
         let mut all = self.get_all().unwrap_or_default();
         let Some(index) = all.iter().position(|item| item.path == path) else {
-            return  Err(String::from(format!("Jdk '{}' does not exist.", path)));
+            return  Err(AppError::new(format!("Jdk '{}' does not exist.", path)));
         };
         all.remove(index);
         self.save_jdks(&all)
     }
 
     /// Remove a jdk.
-    pub fn remove(&self, jdk: &Jdk) -> Result<(), String> {
+    pub fn remove(&self, jdk: &Jdk) -> Result<(), AppError> {
         let mut all = self.get_all().unwrap_or_default();
         let Some(index) = all.iter().position(|item| item.path == jdk.path) else {
-            return  Err(String::from(format!("Jdk '{}' does not exist.", jdk.path)));
+            return  Err(AppError::new(format!("Jdk '{}' does not exist.", jdk.path)));
         };
         all.remove(index);
         self.save_jdks(&all)
@@ -88,29 +87,29 @@ impl JdkRepository {
         fs::remove_file(file_buf).map_err(|_e| ())
     }
 
-    fn save_jdks(&self, jdks: &Vec<Jdk>) -> Result<(), String> {
+    fn save_jdks(&self, jdks: &Vec<Jdk>) -> Result<(), AppError> {
         let mut file = self.json_file(true, true)?;
-        serde_json::to_writer(&mut file, jdks).map_err(|e| e.to_string())
+        Ok(serde_json::to_writer(&mut file, jdks)?)
     }
 
     fn json_file(
         &self,
         create_if_not_exists: bool,
         clear_content: bool,
-    ) -> Result<File, String> {
+    ) -> Result<File, AppError> {
         let file_buf = paths::jdks_json_path();
         if !file_buf.exists() {
             if create_if_not_exists {
                 let Some(parent) = file_buf.parent() else {
                     let message = format!("Cannot find parent of '{}'", file_buf.display());
-                    return Err(String::from(message));
+                    return Err(AppError::new(message));
                 };
                 if !parent.exists() {
-                    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                    fs::create_dir_all(parent)?;
                 }
-                File::create(file_buf).map_err(|e| e.to_string())
+                Ok(File::create(file_buf)?)
             } else {
-                Err(String::from(format!(
+                Err(AppError::new(format!(
                     "File '{}' not exists",
                     file_buf.display()
                 )))
@@ -121,7 +120,7 @@ impl JdkRepository {
                 .write(true)
                 .truncate(clear_content)
                 .open(file_buf)
-                .map_err(|e| e.to_string())
+                .map_err(|e| e.into())
         }
     }
 }

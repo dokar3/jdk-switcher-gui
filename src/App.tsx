@@ -80,7 +80,7 @@ function App() {
         });
       })
       .catch((e) => {
-        toast.error(`Failed to remove JDK '${name}', error: ${e}`, {
+        toast.error(`Failed to remove JDK '${name}', error: ${e.message}`, {
           duration: ToastDuration.Infinity,
         });
       })
@@ -96,7 +96,7 @@ function App() {
         console.log(message);
       })
       .catch((e) => {
-        const message = `Cannot switch to JDK '${jdk.name} ${jdk.version}', error: ${e}`;
+        const message = `Cannot switch to JDK '${jdk.name} ${jdk.version}', error: ${e.message}`;
         console.error(message);
         toast.error(message, { duration: ToastDuration.Infinity });
       })
@@ -120,7 +120,7 @@ function App() {
           toast.success(message, { duration: ToastDuration.Normal });
         })
         .catch((e) => {
-          const message = "Failed to add jdks: " + e;
+          const message = "Failed to add jdks: " + e.message;
           console.error(message);
           toast.error(message, { duration: ToastDuration.Infinity });
         })

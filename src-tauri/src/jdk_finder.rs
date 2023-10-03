@@ -3,16 +3,16 @@ use std::{
     process::Command,
 };
 
-use crate::model::jdk::Jdk;
+use crate::{errors::AppError, model::jdk::Jdk};
 
-pub fn find_jdks_from_dir(path: &PathBuf) -> Result<Vec<Jdk>, String> {
+pub fn find_jdks_from_dir(path: &PathBuf) -> Result<Vec<Jdk>, AppError> {
     if !path.exists() {
-        return Err("Dir does not exist.".to_string());
+        return Err(AppError::new("Dir does not exist."));
     }
     let mut jdks: Vec<Jdk> = vec![];
     if path.is_dir() {
         let Ok(entries) = std::fs::read_dir(path) else {
-            return Err("Cannot read dir.".to_string());
+            return Err(AppError::new("Cannot read dir."));
         };
         let files: Vec<DirEntry> = entries
             .filter(|item| item.is_ok())
@@ -21,7 +21,8 @@ pub fn find_jdks_from_dir(path: &PathBuf) -> Result<Vec<Jdk>, String> {
 
         // Find the java exe
         let java = files.iter().find(|item| {
-            item.path().is_file() && item.file_name() == get_java_executable()
+            item.path().is_file()
+                && item.file_name() == java_executable_filename()
         });
         if java.is_some() {
             let jdk = find_jdk_from_exe_path(&java.unwrap().path());
@@ -57,28 +58,27 @@ pub fn find_jdks_from_dir(path: &PathBuf) -> Result<Vec<Jdk>, String> {
 
         Ok(jdks)
     } else {
-        Err("Target path is not a directory.".to_string())
+        Err(AppError::new("Target path is not a directory."))
     }
 }
 
-pub fn find_jdk_from_exe_path(path: &PathBuf) -> Result<Jdk, String> {
+pub fn find_jdk_from_exe_path(path: &PathBuf) -> Result<Jdk, AppError> {
     if !path.exists() {
-        return Err("Target exe does not exist.".to_string());
+        return Err(AppError::new("Target exe does not exist."));
     }
     let output = Command::new(path.as_os_str())
         .arg("-version")
         .stdout(std::process::Stdio::piped())
         .creation_flags(0x08000000)
-        .output()
-        .map_err(|e| e.to_string())?;
+        .output()?;
     // java --version -> stderr
     // java -version  -> stdout
     let Ok(stderr) = String::from_utf8(output.stderr) else {
-        return Err("Cannot not read jdk -version output".to_string());
+        return Err(AppError::new("Cannot not read jdk -version output"));
     };
     let lines: Vec<&str> = stderr.lines().take(3).collect();
     if lines.len() < 3 {
-        return Err("Unsupported -version output".to_string());
+        return Err(AppError::new("Unsupported -version output"));
     }
     let version = parse_version(lines[0]).unwrap_or("Unknown".to_string());
     let name = parse_name(lines[1]);
@@ -118,7 +118,7 @@ fn parse_arch(third_line: &str) -> String {
     }
 }
 
-const fn get_java_executable() -> &'static str {
+const fn java_executable_filename() -> &'static str {
     #[cfg(target_os = "windows")]
     {
         "java.exe"
