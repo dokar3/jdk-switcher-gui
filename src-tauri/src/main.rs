@@ -3,6 +3,7 @@
 
 mod app_settings;
 mod app_view_model;
+mod errors;
 mod jdk_finder;
 mod jdk_switcher;
 mod model;
@@ -10,6 +11,7 @@ mod repo;
 mod util;
 
 use app_view_model::AppViewModel;
+use errors::AppError;
 use indoc::formatdoc;
 use model::jdk::Jdk;
 use std::path::PathBuf;
@@ -101,7 +103,7 @@ async fn load_jdks(
 async fn add_jdks_from_dir(
     view_model: tauri::State<'_, AppViewModel>,
     dir: String,
-) -> Result<usize, String> {
+) -> Result<usize, AppError> {
     view_model.try_add_jdks_from_dir(&dir)
 }
 
@@ -109,7 +111,7 @@ async fn add_jdks_from_dir(
 async fn switch_to_jdk(
     view_model: tauri::State<'_, AppViewModel>,
     jdk: Jdk,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     view_model.switch_to_jdk(&jdk)
 }
 
@@ -117,7 +119,7 @@ async fn switch_to_jdk(
 async fn remove_jdk_by_path(
     view_model: tauri::State<'_, AppViewModel>,
     path: String,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     view_model.remove_jdk_by_path(&path)
 }
 
@@ -125,7 +127,7 @@ async fn remove_jdk_by_path(
 async fn update_app_theme(
     view_model: tauri::State<'_, AppViewModel>,
     theme: String,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     view_model.update_app_theme(&theme)
 }
 
@@ -133,6 +135,6 @@ async fn update_app_theme(
 async fn update_skip_dir_selection_hint(
     view_model: tauri::State<'_, AppViewModel>,
     value: bool,
-) -> Result<(), String> {
+) -> Result<(), AppError> {
     view_model.update_skip_dir_selection_hint(value)
 }
