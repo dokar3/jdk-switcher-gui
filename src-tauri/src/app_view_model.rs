@@ -174,21 +174,17 @@ impl AppViewModel {
         };
 
         // Update the current jdk
-        let mut current = jdks[current_index].clone();
-        current.is_current = true;
         let mut new_list = jdks;
-        new_list[current_index] = current;
+        new_list[current_index].is_current = true;
 
         AppViewModel::validate_jdks(new_list)
     }
 
     fn validate_jdks(list: Vec<Jdk>) -> Vec<Jdk> {
-        list.iter()
-            .map(|item| {
-                let mut item = item.clone();
-                item.is_valid = Path::new(&item.path).exists();
-                item
-            })
-            .collect()
+        let mut list = list;
+        for item in list.iter_mut() {
+            item.is_valid = Path::new(&item.path).exists();
+        }
+        list
     }
 }
