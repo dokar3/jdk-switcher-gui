@@ -1,10 +1,12 @@
-# JDK Switcher
+<h1 align="center">JDK Switcher</h1>
 
 <p align="center">
 <img width="128" src="./public/icon.png"/>
 </p>
 
+<p align="center">
 A slim GUI App to switch between multiple JDKs, currently it works on Windows.
+</p>
 
 # Screenshots
 
@@ -15,9 +17,8 @@ A slim GUI App to switch between multiple JDKs, currently it works on Windows.
 
 Requirements:
 
-- [Rust](https://www.rust-lang.org/)
-- [Node.js](https://nodejs.org/en)
-- [Yarn](https://yarnpkg.com/)
+- [Rust](https://www.rust-lang.org/) and [Tauri](https://tauri.app/)
+- [Node.js](https://nodejs.org/en) and [Yarn](https://yarnpkg.com/)
 
 Run App in debug mode:
 
