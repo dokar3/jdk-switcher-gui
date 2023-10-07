@@ -1,12 +1,18 @@
-<h1 align="center">JDK Switcher</h1>
-
 <p align="center">
 <img width="128" src="./public/icon.png"/>
 </p>
 
-<p align="center">
+<h1 align="center">JDK Switcher</h1>
+
 A slim GUI App to switch between multiple JDKs, currently it works on Windows.
-</p>
+
+Some of key features are:
+
+- Slim and simple, 2.5MB for the msi installer
+- Easy to switch between JDKs, just a few clicks
+- Scan JDKs from directories
+- Dark theme
+- Open the JDK folder in File Explorer
 
 # Screenshots
 
