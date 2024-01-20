@@ -27,7 +27,7 @@
     "postcss": "^8.4.30",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.0.2",
-    "vite": "^4.4.4"
+    "vite": "^4.5.2"
   },
   "packageManager": "yarn@3.6.3"
 }
