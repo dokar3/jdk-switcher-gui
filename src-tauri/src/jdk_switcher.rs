@@ -31,6 +31,8 @@ pub fn switch_to_jdk(jdk: &Jdk) -> Result<(), AppError> {
     if ret.is_ok() {
         // Update path var of the current process
         util::env::use_sys_env_path_var()?;
+        // Broadcast WM_SETTINGCHANGE from medium integrity user process
+        util::env::notify_environment_change();
     }
 
     ret
